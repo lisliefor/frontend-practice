@@ -1,8 +1,13 @@
 <template>
-  <div>
+  <div style='text-align: left;'>
     <h1>{{ msg }}</h1>
-    <div ref="container" style="height: 360px; width: 100%;text-align: left;"></div>
-    <button @click="saveFile()" type="button">保存文件</button>
+    <div style='margin-bottom: 10px;'>
+      <input ref='readBtn' type='file' id='files' style='display:none' @change='readFile()'/>
+      <input type='button' id='import' value='打开文件' @click='openReadDialog' />
+    </div>
+    <div ref='container' style='height: 360px; width: 100%;text-align: left;'></div>
+    <button style='margin-top: 10px;' @click='saveFile()' type='button'>保存文件</button>
+    <a style='display: none;' id='download-link'>下载</a>
   </div>
 </template>
 
@@ -12,7 +17,7 @@ export default {
   name: 'SaveFile',
   data () {
     return {
-      msg: 'Welcome to Your first widget'
+      msg: 'This is my first vue sample.'
     }
   },
   mounted () {
@@ -41,8 +46,32 @@ export default {
     destroyEditor () {
       this.monacoEditor.dispose()
     },
-    saveFile: function (evt) {
-      console.log(evt)
+    saveFile: function () {
+      const content = this.monacoEditor.getValue()
+      const downlink = document.getElementById('download-link')
+      const blob = new Blob([content], { type: 'application/octet-stream' })
+      const fileName = 'a.txt'
+
+      if (window.navigator.msSaveOrOpenBlob) {
+        navigator.msSaveBlob(blob, fileName)
+      } else {
+        downlink.href = window.URL.createObjectURL(blob)
+        downlink.download = fileName
+        downlink.click()
+      }
+    },
+    openReadDialog: function () {
+      this.$refs.readBtn.click()
+    },
+    readFile: function () {
+      const selectedFile = document.getElementById('files').files[0]
+      var reader = new FileReader()
+      reader.readAsText(selectedFile)
+      const editor = this.monacoEditor
+
+      reader.onload = function (evt) {
+        editor.setValue(evt.currentTarget.result)
+      }
     }
   }
 }
